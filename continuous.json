@@ -10,19 +10,19 @@
   "candidates": 2,
   "max_runtime_seconds": 86400,
   "render_timeout_seconds": 90,
-  "max_disk_mb": 2048,
+  "max_disk_mb": 4096,
   "retries": 1,
   "threads": 2,
   "regression_every": 10,
   "minimum_relative_gain": 0.15,
   "evaluation_weights": {
-    "motion_smoothness": 0.20,
-    "timing_easing": 0.20,
+    "motion_smoothness": 0.2,
+    "timing_easing": 0.2,
     "visual_hierarchy": 0.15,
     "composition_spacing": 0.15,
-    "creativity_originality": 0.10,
-    "transitions": 0.10,
-    "professional_polish": 0.10
+    "creativity_originality": 0.1,
+    "transitions": 0.1,
+    "professional_polish": 0.1
   },
   "visual_evaluator_command": null,
   "visual_evaluator_timeout_seconds": 60

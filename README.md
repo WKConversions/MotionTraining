@@ -1,3 +1,5 @@
+[**Latest published comparison (round 138)**](examples/latest/README.md)
+
 [**New composition studies: compare three distinct visual explanations**](examples/design-review/README.md)
 
 [**Open the full video gallery — all published experiment videos**](examples/gallery/README.md)
@@ -109,7 +111,7 @@ For continuous creation → rendering → analysis → controlled improvement:
 ```
 
 Continuous mode has no round limit. It retains explicit limits of 24 hours per
-invocation and 2 GiB cumulative storage, and requires a running host. Each new seed
+invocation and 4 GiB cumulative storage, and requires a running host. Each new seed
 varies object sizes, positions and displacements, with identical layouts within each
 controlled comparison. The normal three-round command remains useful for verification.
 
