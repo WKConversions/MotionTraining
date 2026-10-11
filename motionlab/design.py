@@ -10,6 +10,17 @@ DEFAULTS = {"curve": "linear", "travel_frames": 24, "stagger_frames": 0, "oversh
 
 def easing(t, curve):
     t = max(0.0, min(1.0, t))
+    if curve in ('arrive','depart','move'):
+        if t in (0,1):
+            return t
+        x1,y1,x2,y2={'arrive':(.22,1,.36,1),'depart':(.64,0,.78,0),'move':(.65,0,.35,1)}[curve]
+        lo,hi=0.0,1.0
+        for _ in range(32):
+            u=(lo+hi)/2
+            x=3*(1-u)**2*u*x1+3*(1-u)*u*u*x2+u**3
+            if x<t: lo=u
+            else: hi=u
+        return 3*(1-u)**2*u*y1+3*(1-u)*u*u*y2+u**3
     if curve == "linear":
         return t
     if curve == "cubic":
@@ -18,10 +29,14 @@ def easing(t, curve):
         return t ** 3 * (10 - 15 * t + 6 * t * t)
     if curve == "cosine":
         return (1 - math.cos(math.pi * t)) / 2
+    if curve == "septic":
+        return t**4*(35-84*t+70*t*t-20*t**3)
+    if curve == "sine-quintic":
+        return 0.5*((1-math.cos(math.pi*t))/2+t**3*(10-15*t+6*t*t))
     raise ValueError(f"Unsupported curve: {curve}")
 
 
-def plan(scenario, params, seed=0):
+def plan(scenario, params, seed=0, profile=None):
     if scenario not in SCENARIOS:
         raise ValueError("Unknown scenario")
     p = {**DEFAULTS, **params}
@@ -33,12 +48,19 @@ def plan(scenario, params, seed=0):
     for i in range(3):
         start = 8 + i * p["stagger_frames"]
         # Canonical layout units; all geometries remain within the 1920x1080 design.
+        x0 = 340 + i*510 + rng.randint(-20,20)
         specs.append({"id": i, "start": start, "end": start + p["travel_frames"],
-                      "x0": 340 + i * 510, "x1": 430 + i * 510,
-                      "y0": 680, "y1": 490, "size": 220})
+                      "x0": x0, "x1": x0+rng.randint(60,110),
+                      "y0": rng.randint(630,680), "y1": rng.randint(480,540),
+                      "size": rng.randint(180,220)})
     if max(s["end"] for s in specs) > 72:
         raise ValueError("Arrival leaves too little readable hold time")
-    return {"scenario": scenario, "params": p, "seed": seed, "theme": theme, "objects": specs}
+    if profile=='senior':
+        for obj in specs:
+            obj['size']=300 if obj['id']==1 else 130
+            obj['y0']=650; obj['y1']=520 if obj['id']==1 else 570
+    return {"scenario": scenario, "params": p, "seed": seed, "theme": theme, "objects": specs,
+            "profile":profile}
 
 
 def states(scene, frame):
@@ -59,6 +81,9 @@ BOLD_FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
 
 def frame_image(scene, frame, cfg):
+    if scene.get('profile')=='senior':
+        from .senior_design import frame_image as senior_frame
+        return senior_frame(scene,frame,cfg)
     w, h = cfg["width"], cfg["height"]
     sx, sy = w / 1920, h / 1080
     im = Image.new("RGB", (w, h), cfg["background"])

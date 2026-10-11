@@ -1,5 +1,21 @@
 # Motion Training
 
+## Watch the senior-skill experiment videos
+
+![Frames from the senior-skill experiment](examples/senior-preview.jpg)
+
+**[Open/download the new video with music, effects and draft voice-over](examples/senior-improved.mp4)** ·
+[Open/download its baseline](examples/senior-baseline.mp4)
+
+[Download the updated complete motion-design skill ZIP](motion-design-skill.zip) ·
+[Original supplied senior-motion-designer ZIP](skills/senior-motion-designer-original.zip)
+
+These examples use your existing senior skill as their baseline. The technical improvement
+in this pair is effect synchronization; no aesthetic or professional voice-quality claim
+is made. The report at `runtime/report.html` contains all completed local experiments.
+The committed ZIP is a fixed verified snapshot; the running controller keeps newer
+snapshots in `runtime/motion-design-skill.zip` and `runtime/archives/`.
+
 A working, original motion-design experiment controller. It generates frame-indexed
 animations, renders H.264 MP4s, measures the decoded video, tests controlled alternatives,
 checks transfers, and rebuilds a verified skill ZIP after **every completed round**.
@@ -44,6 +60,54 @@ The tests render real 640×360 videos for speed. The normal controller renders *
 alternatives, held-out transfers when warranted, and fixed technical benchmarks.
 
 ## Operate
+
+### User-supplied senior motion design skill
+
+The active baseline is now the supplied **senior-motion-designer** skill, not the
+bootstrap skill created when the repository was empty. All 105 supplied files,
+including SKILL.md, library modules, Remotion helpers, data and audio tools, are kept
+byte for byte in the current ZIP. The import is explicitly recorded as a baseline
+change, not a successful motion experiment. Earlier bootstrap records are retained.
+
+`motionlab import-skill /path/to/skill.zip` imports a skill while the controller is
+stopped, preserves its original archive under runtime/imports/, and creates a new
+verified snapshot. The additive `training/AUTONOMOUS.md` explains the user's research
+authorization separately from the unchanged client-film workflow.
+
+Research now cycles through sound effects, visuals, materials, smoothness, originality,
+music, voice-over, timing, transitions, typography, rendering libraries, sound-picture
+sync and mixing. Bright palettes, an asymmetric hierarchy and a purposeful thread
+apply the supplied design principles. Named arrive/depart/move curves are implemented
+from the supplied easing control points. Every new seed changes the composition.
+
+Audio-enabled studies reuse the supplied `music_make.py` and `sfx_synth.py` to compose
+original music and synthesize effects, plus local eSpeak draft speech. MP4s contain an
+actual 48 kHz AAC soundtrack. The voice is explicitly a robotic draft, not a claim of
+professional performance. Full mixed audio is decoded and checked for finite samples,
+duration and clipping; precise effect sync is measured on a decoded stem. Mixed-track
+audibility, musical taste and voice intelligibility remain unevaluated. FFmpeg applies
+the declared loudness target, but a separate compliance measurement is not yet claimed.
+
+Technical audio-sync gains can be promoted only after two transfer checks. Visual,
+material, music, voice and originality hypotheses remain **experimental** without a
+capable independent evaluator; successful rendering alone does not prove improvement.
+The existing visual-evaluator command adapter is optional. No paid API is assumed.
+The supersampled raster candidate tests a distinct rendering pipeline; existing
+Remotion helpers remain intact, but there is no claim that this lab rendered through
+Remotion or After Effects. The private online library artifact is not republished.
+
+For continuous creation → rendering → analysis → controlled improvement:
+
+```bash
+.venv/bin/python -m motionlab --config continuous.json start --continuous
+.venv/bin/python -m motionlab --config continuous.json status
+.venv/bin/python -m motionlab --config continuous.json stop
+```
+
+Continuous mode has no round limit. It retains explicit limits of 24 hours per
+invocation and 2 GiB cumulative storage, and requires a running host. Each new seed
+varies object sizes, positions and displacements, with identical layouts within each
+controlled comparison. The normal three-round command remains useful for verification.
 
 ```bash
 # Foreground; run up to three additional rounds within the configured budgets.

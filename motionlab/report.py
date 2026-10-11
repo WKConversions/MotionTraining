@@ -40,12 +40,20 @@ def write_report(root, cfg):
         "latest_event":latest_event,"benchmark_history":[{"round":r["round"],"regression":r.get("regression")} for r in records if r.get("regression")],
         "most_successful_techniques":[r["finding"] for r in records if r["classification"]=="validated"],
         "weakest_unverified_capabilities":["Visual hierarchy","Typography legibility","Originality","Professional polish"],
+        "baseline_skill":json.loads(files['training/profile.json']) if verified and 'training/profile.json' in files else None,
+        "completed_experiment_rounds":sum(r['classification']!='imported' for r in records),
+        "research_domains":{domain:sum(r.get('research_domain')==domain for r in records) for domain in sorted(
+            {r.get('research_domain','motion_continuity') for r in records})},
         "round_statuses":[{"round":row[0],"status":row[1],"error":row[4]} for row in rows]}
     atomic_json(root/"status.json",summary)
     cards = []
     for r in reversed(records):
+        if r['classification']=='imported':
+            cards.append(f'<section><h2>User skill adopted · round {r["round"]}</h2><p>{html.escape(r["reason"])}</p>'
+                '<p>The original skill and library are preserved byte for byte. This import is not an animation experiment.</p></section>')
+            continue
         candidates = [{"path":r["baseline_path"],"label":"Baseline"}]+[
-            {"path":c["path"],"label":f"{c['label']}: {r['variable']}={c['value']}"} for c in r["candidates"]]
+            {"path":c["path"],"label":f"{c['label']}: {r['variable']}={c['value']}"} for c in r["candidates"] if c['evaluation'] is not None]
         media = []
         for c in candidates:
             path = html.escape(c["path"],quote=True)
@@ -54,9 +62,11 @@ def write_report(root, cfg):
                          f'<a href="{path}/evaluation.json">Evaluation</a> · '
                          f'<a href="{path}/scene.json">Source configuration</a> · '
                          f'<a href="{path}/contact-sheet.jpg">Decoded frames</a></figure>')
-        cards.append(f'<section><h2>Round {r["round"]} · {r["classification"]}</h2>'
+        failures=''.join(f'<p>Rejected failed candidate: {html.escape(c["label"])} — {html.escape(c["error"])}</p>'
+                         for c in r['candidates'] if c.get('status')=='failed')
+        cards.append(f'<section><h2>Round {r["round"]} · {r["classification"]} · {html.escape(r.get("research_domain","motion"))}</h2>'
                      f'<p>{html.escape(r["hypothesis"])}</p><p>{html.escape(r["reason"])}</p>'
-                     f'<div class="samples">{"".join(media)}</div></section>')
+                     f'{failures}<div class="samples">{"".join(media)}</div></section>')
     document = '''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
 <title>Motion Training — experiment report</title><style>
 body{background:#101827;color:#edf3fe;font:16px system-ui;max-width:1400px;margin:40px auto;padding:0 24px}

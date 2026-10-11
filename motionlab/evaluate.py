@@ -64,18 +64,29 @@ def evaluate(folder, cfg, timeout=None):
     # Locate the three objects in decoded frames. Sample below static header and above footer.
     centers = []
     strengths = []
+    scene=read_json(folder/'scene.json')
     for frame in frames:
         row_centers = []
         row_strength = []
         for obj in range(3):
-            left, right = int((185+510*obj)/6), int((605+510*obj)/6)
-            crop = frame[58:137,left:right].astype(float)
-            strength = np.maximum(crop.max(axis=2)-65,0)
+            if scene.get('profile')=='senior':
+                spec=scene['objects'][obj];radius=spec['size']/2
+                left=int((min(spec['x0'],spec['x1'])-radius-18)/6)
+                right=int((max(spec['x0'],spec['x1'])+radius+18)/6)
+                top=int((min(spec['y0'],spec['y1'])-radius-18)/6)
+                bottom=int((max(spec['y0'],spec['y1'])+radius+18)/6)
+                crop=frame[top:bottom,left:right].astype(float)
+                strength=np.maximum(np.max(np.abs(crop-frame[0,0].astype(float)),axis=2)-14,0)
+            else:
+                left,right=int((185+510*obj)/6),int((605+510*obj)/6)
+                top=58
+                crop = frame[58:137,left:right].astype(float)
+                strength = np.maximum(crop.max(axis=2)-65,0)
             yy, xx = np.indices(strength.shape)
             total = strength.sum()
             if total < 1:
                 raise ValueError("No visible object detected in encoded frame")
-            row_centers.append([(strength*xx).sum()/total+left,(strength*yy).sum()/total+58])
+            row_centers.append([(strength*xx).sum()/total+left,(strength*yy).sum()/total+top])
             row_strength.append(float(total))
         centers.append(row_centers)
         strengths.append(row_strength)
@@ -117,6 +128,16 @@ def evaluate(folder, cfg, timeout=None):
         "observation":f"Peak decoded centroid jerk near frame {peak_frame}; RMS={rms(jerk):.6f}",
         "likely_cause":"Discrete easing boundary or evolving shape affects visible centroid",
         "test":"Compare curves under identical scene, displacement, timing and seed"})
+    if scene.get('profile')=='senior':
+        from .audio import evaluate_audio
+        result['audio']=evaluate_audio(folder,timeout)
+        result['profile']='senior-motion-designer'
+        result['objective']['moving_frame_fraction']=float(np.mean(pixel_change>0.02))
+        result['objective']['structure']={k:scene['params'].get(k) for k in
+            ['visual_strategy','palette','material','transition','library_backend','font_scale']}
+        if result['objective']['moving_frame_fraction']<0.9:
+            result['critique'].append({'category':'liveliness','observation':'Below the supplied skill\'s 90% moving-frame target',
+                'likely_cause':'Readable hold leaves most content still','test':'Test purposeful content progression without artificial camera motion'})
     if 89-last_arrival < 24:
         result["critique"].append({"category":"readable_hold", "observation":f"Only {89-last_arrival} hold frames",
                                  "likely_cause":"Late arrival", "test":"Reduce travel duration or stagger"})

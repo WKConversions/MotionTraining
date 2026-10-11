@@ -199,6 +199,8 @@ class SkillStore:
             defaults = json.loads(files["techniques/defaults.json"])
             defaults[record["variable"]] = record["chosen_value"]
             updated["techniques/defaults.json"] = encode(defaults)
+            # Keep the actual tested implementation with accepted new curve defaults.
+            updated["techniques/interpolation.py"] = Path(__file__).with_name("design.py").read_bytes()
         elif record["classification"] == "rejected":
             updated["experiments/rejected-hypotheses.md"] += (
                 f"\n- Round {record['round']}: {record['hypothesis']} — {record['reason']}\n").encode()
@@ -208,6 +210,27 @@ class SkillStore:
             f"\n- Round {record['round']}: {record['classification']}; {record['reason']}.\n").encode()
         # Concise reproducible experiment source configurations are inside the ZIP; videos stay outside.
         updated[f"experiments/round-{record['round']:06d}.json"] = encode(record)
+        # The skill ZIP includes the complete runnable research infrastructure as
+        # scoped training tooling, separate from the unchanged approved library.
+        package=Path(__file__).parent
+        for source in package.glob('*.py'):
+            updated['training/project/motionlab/'+source.name]=source.read_bytes()
+        updated['training/project/requirements.txt']=package.parent.joinpath('requirements.txt').read_bytes()
+        for name in ['config.json','continuous.json']:
+            updated['training/project/'+name]=package.parent.joinpath(name).read_bytes()
+        updated['training/START.md']=b'''# Run the research tooling
+
+The library and SKILL.md are usable as the supplied senior skill. The training/project/
+folder preserves the exact research implementation and pinned Python requirements.
+The full GitHub project supplies operating documentation and source-control history.
+When using the exported tooling separately, retain the downloaded verified skill ZIP,
+copy it to training/project/runtime/motion-design-skill.zip along with its SHA256 sidecar,
+then run python -m motionlab verify before python -m motionlab resume --continuous.
+Processes do not survive snapshots. Study both video and audio and keep subjective
+findings experimental without independent evidence. Do not fetch reference videos.
+'''
+        if record.get('editorial_reviews'):
+            updated['training/editorial-reviews.json']=encode(record['editorial_reviews'])
         bench = json.loads(files["evaluations/benchmark-summary.json"])
         bench["history"].append({"round":record["round"],"comparison":record["comparison"],
                                  "classification":record["classification"],"subjective":record["visual_evaluation"]["status"]})

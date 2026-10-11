@@ -7,8 +7,8 @@ Type=simple
 # Adapt account, checkout location and budget config to your persistent host.
 User=motiontraining
 WorkingDirectory=/srv/MotionTraining
-ExecStart=/srv/MotionTraining/.venv/bin/python -m motionlab --config /srv/MotionTraining/config.json resume --rounds 100
-ExecStop=/srv/MotionTraining/.venv/bin/python -m motionlab --config /srv/MotionTraining/config.json stop
+ExecStart=/srv/MotionTraining/.venv/bin/python -m motionlab --config /srv/MotionTraining/continuous.json resume --continuous
+ExecStop=/srv/MotionTraining/.venv/bin/python -m motionlab --config /srv/MotionTraining/continuous.json stop
 # Budgets terminate the invocation. Deliberately do not restart automatically on failure.
 Restart=no
 KillSignal=SIGTERM

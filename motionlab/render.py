@@ -36,7 +36,14 @@ def render(scene, folder, cfg, timeout=None):
         timer.start()
         try:
             for frame in range(cfg["fps"] * cfg["duration"]):
-                im, metadata = frame_image(scene, frame, cfg)
+                if scene['params'].get('library_backend')=='supersampled':
+                    from PIL import Image
+                    im, metadata=frame_image(scene,frame,{**cfg,'width':cfg['width']*2,'height':cfg['height']*2})
+                    im=im.resize((cfg['width'],cfg['height']),Image.Resampling.LANCZOS)
+                    for key in ['text_bounds','shape_bounds']:
+                        metadata[key]=[[v/2 for v in bounds] for bounds in metadata[key]]
+                else:
+                    im, metadata = frame_image(scene, frame, cfg)
                 process.stdin.write(im.tobytes())
                 rows.append(metadata)
             process.stdin.close()
@@ -53,6 +60,15 @@ def render(scene, folder, cfg, timeout=None):
             if process.stdin and not process.stdin.closed:
                 process.stdin.close()
     os.replace(tmp, video)
+    if scene.get('profile')=='senior':
+        from .audio import make_audio
+        make_audio(scene,folder,cfg,timeout or cfg['render_timeout_seconds'])
+        mux=folder/'audio-mux.partial.mp4'
+        subprocess.run(['ffmpeg','-y','-v','error','-i',str(video),'-i',str(folder/'mix.wav'),
+            '-map','0:v:0','-map','1:a:0','-c:v','copy','-c:a','aac','-b:a','192k','-ar','48000',
+            '-af','loudnorm=I=-15:TP=-1.5:LRA=7,aresample=48000','-t','3','-movflags','+faststart',str(mux)],
+            check=True,timeout=timeout or cfg['render_timeout_seconds'])
+        os.replace(mux,video)
     atomic_json(folder / "motion.json", rows)
     atomic_json(folder / "render.json", {"video_sha256": digest(video), "scene": scene,
                                        "width": cfg["width"], "height": cfg["height"], "fps": cfg["fps"]})

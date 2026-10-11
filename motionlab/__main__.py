@@ -16,26 +16,36 @@ def main():
     for name in ("run","start","resume"):
         command = commands.add_parser(name)
         command.add_argument("--rounds",type=int,help="Additional rounds; defaults to configured round budget")
+        command.add_argument("--continuous",action="store_true",help="Keep running until stopped or runtime/storage budget reached")
     for name in ("stop","status","report","verify","recover"):
         commands.add_parser(name)
+    command=commands.add_parser('import-skill')
+    command.add_argument('zip',help='Existing skill ZIP; original bytes are preserved')
     args = parser.parse_args()
     cfg = load_config(args.config)
     root = Path(cfg["output"])
     root.mkdir(parents=True,exist_ok=True)
-    if args.command in ("run","resume","start"):
+    if args.command=='import-skill':
+        from .import_skill import import_skill
+        print(json.dumps(import_skill(args.zip,root),indent=2))
+    elif args.command in ("run","resume","start"):
         if args.rounds is not None and args.rounds < 1:
             parser.error("--rounds must be positive")
+        if args.continuous and args.rounds is not None:
+            parser.error("Choose --continuous or --rounds")
         if args.command == "start":
             cmd = [sys.executable,"-m","motionlab","--config",str(Path(args.config).resolve()),"resume"]
             if args.rounds:
                 cmd += ["--rounds",str(args.rounds)]
+            if args.continuous:
+                cmd += ["--continuous"]
             with open(root/"controller.log","ab") as log:
                 process = subprocess.Popen(cmd,stdout=log,stderr=log,start_new_session=True,cwd=Path(__file__).resolve().parents[1])
             print(json.dumps({"launched_pid":process.pid,"log":str(root/"controller.log"),
                 "note":"Launch is not readiness; inspect status. Process requires this machine to remain running."}))
             return
         (root/"STOP").unlink(missing_ok=True)
-        print(Controller(cfg).run(args.rounds))
+        print(Controller(cfg).run(args.rounds,continuous=args.continuous))
     elif args.command == "stop":
         atomic_bytes(root/"STOP",b"Graceful stop at the next safe checkpoint\n")
         print("Stop requested; the active render may finish before checkpoint exit.")
