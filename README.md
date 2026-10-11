@@ -1,3 +1,5 @@
+[**Open the full video gallery — all published experiment videos**](examples/gallery/README.md)
+
 # Motion Training
 
 ## Watch the senior-skill experiment videos

@@ -1,3 +1,5 @@
+[Open the full experiment video gallery](gallery/README.md)
+
 # Actual initial experiment outputs
 
 ## Senior skill baseline

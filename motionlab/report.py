@@ -59,6 +59,7 @@ def write_report(root, cfg):
             path = html.escape(c["path"],quote=True)
             media.append(f'<figure><figcaption>{html.escape(c["label"])}</figcaption>'
                          f'<video controls preload="metadata" src="{path}/animation.mp4"></video>'
+                         f'<a href="{path}/animation.mp4" download>Download MP4</a> · '
                          f'<a href="{path}/evaluation.json">Evaluation</a> · '
                          f'<a href="{path}/scene.json">Source configuration</a> · '
                          f'<a href="{path}/contact-sheet.jpg">Decoded frames</a></figure>')
@@ -80,6 +81,10 @@ figure{margin:0;flex:1;min-width:280px}video{width:100%;display:block;margin:12p
     document += f'<p>Controller: {html.escape(state["status"])} · ZIP integrity: {verified}. '
     document += '<a href="motion-design-skill.zip">Current skill ZIP</a> · <a href="status.json">Detailed status</a></p>'
     document += '<p>Subjective professional quality remains unevaluated without an independent capable evaluator. '
-    document += 'Lower motion jerk alone does not establish better design.</p>'+''.join(cards)+'</html>'
+    document += 'Lower motion jerk alone does not establish better design.</p>'
+    document += '<p>Open this report with its accompanying rounds folder for local playback. '
+    document += 'If your viewer cannot load local videos, use the '
+    document += '<a href="https://github.com/WKConversions/MotionTraining/tree/main/examples/gallery">published GitHub video gallery</a>.</p>'
+    document += ''.join(cards)+'</html>'
     atomic_bytes(root/"report.html",document.encode())
     return summary
