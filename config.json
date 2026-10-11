@@ -1,0 +1,29 @@
+{
+  "output": "runtime",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "duration": 3,
+  "background": "#101827",
+  "seed": 20261011,
+  "rounds": 3,
+  "candidates": 2,
+  "max_runtime_seconds": 1800,
+  "render_timeout_seconds": 90,
+  "max_disk_mb": 2048,
+  "retries": 1,
+  "threads": 2,
+  "regression_every": 10,
+  "minimum_relative_gain": 0.15,
+  "evaluation_weights": {
+    "motion_smoothness": 0.20,
+    "timing_easing": 0.20,
+    "visual_hierarchy": 0.15,
+    "composition_spacing": 0.15,
+    "creativity_originality": 0.10,
+    "transitions": 0.10,
+    "professional_polish": 0.10
+  },
+  "visual_evaluator_command": null,
+  "visual_evaluator_timeout_seconds": 60
+}

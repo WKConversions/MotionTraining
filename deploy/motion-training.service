@@ -1,0 +1,20 @@
+[Unit]
+Description=Bounded autonomous original motion-design experiments
+After=network.target
+
+[Service]
+Type=simple
+# Adapt account, checkout location and budget config to your persistent host.
+User=motiontraining
+WorkingDirectory=/srv/MotionTraining
+ExecStart=/srv/MotionTraining/.venv/bin/python -m motionlab --config /srv/MotionTraining/config.json resume --rounds 100
+ExecStop=/srv/MotionTraining/.venv/bin/python -m motionlab --config /srv/MotionTraining/config.json stop
+# Budgets terminate the invocation. Deliberately do not restart automatically on failure.
+Restart=no
+KillSignal=SIGTERM
+TimeoutStopSec=120
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
