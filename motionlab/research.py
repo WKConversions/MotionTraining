@@ -1,5 +1,6 @@
 """Declared hypotheses and evidence gates across the senior skill's capabilities."""
 DOMAINS = [
+    ("composition","visual_strategy",["signal_merge","direction_field"],"Compare distinct visual explanations: many signals become one decision, or a shared directional field guides the destination", "subjective"),
     ("sound_effects","sfx_offset_frames",[0,2],"Align synthesized impact peaks with the picture event", "audio_sync"),
     ("visuals","palette",["sky","coral"],"Compare color hierarchy and clarity against the bright baseline", "subjective"),
     ("materials","material",["paper","glass"],"Test restrained material cues without reducing text clarity", "subjective"),
@@ -17,9 +18,15 @@ DOMAINS = [
 
 
 def select(number,profile,defaults,limit):
-    index=(number-profile["import_round"]-1)%len(DOMAINS)
+    position=number-profile["import_round"]-1
+    # Give substantial composition studies every third round while retaining all domains.
+    index=0 if position%3==0 else 1+(position-position//3-1)%(len(DOMAINS)-1)
     domain,variable,values,hypothesis,gate=DOMAINS[index]
-    options=[v for v in values if v!=defaults.get(variable)][:limit]
+    # Visit later alternatives on later passes instead of repeating the first pair forever.
+    alternatives=[v for v in values if v!=defaults.get(variable)]
+    cycle=(number-profile["import_round"]-1)//len(DOMAINS)
+    offset=(cycle*limit)%len(alternatives) if alternatives else 0
+    options=(alternatives[offset:]+alternatives[:offset])[:limit]
     scenario=("cards","orbit","morph","type","wave","mask")[index%6]
     return {"domain":domain,"variable":variable,"values":options,"hypothesis":hypothesis,"gate":gate,"scenario":scenario}
 

@@ -11,6 +11,8 @@ PALETTES={'mint':('#F0F8F2','#146653','#122D2B'),
 
 
 def frame_image(scene,frame,cfg):
+    if scene['params'].get('visual_strategy') in ('signal_merge','direction_field'):
+        return concept_frame(scene,frame,cfg)
     w,h=cfg['width'],cfg['height']; sx,sy=w/1920,h/1080
     p=scene['params']; bg,accent,ink=PALETTES[p.get('palette','mint')]
     im=Image.new('RGB',(w,h),bg); d=ImageDraw.Draw(im)
@@ -94,5 +96,70 @@ def frame_image(scene,frame,cfg):
     text(150,950,'ORIGINAL STUDY · NO CLIENT CLAIMS',font,accent)
     text(1765,950,'03 SEC',font,accent,'ra')
     return im,{'frame':frame,'states':states(scene,frame),'text_bounds':boxes,'shape_bounds':shapes,
+               'style':{'background':bg,'ink':ink,'accent':accent,'primary_object':1,'strategy':strategy,
+                        'material':p.get('material','flat'),'transition':p.get('transition','carry')}}
+
+
+def concept_frame(scene, frame, cfg):
+    """Distinct compositions with an explicit visual cause and destination."""
+    w,h=cfg['width'],cfg['height']; sx,sy=w/1920,h/1080
+    p=scene['params']; strategy=p['visual_strategy']
+    bg,accent,ink=PALETTES[p.get('palette','mint')]
+    im=Image.new('RGB',(w,h),bg); d=ImageDraw.Draw(im)
+    boxes=[]; shapes=[]
+    def point(x,y): return (round(x*sx),round(y*sy))
+    def text(x,y,value,size,color=ink,anchor=None):
+        f=ImageFont.truetype(BOLD_FONT,round(size*sy))
+        pos=point(x,y); kwargs={'font':f,'anchor':anchor}
+        boxes.append(list(d.textbbox(pos,value,**kwargs)))
+        d.text(pos,value,fill=color,**kwargs)
+    text(150,105,'Find the clear path.',104)
+    text(150,245,'MANY SIGNALS. ONE DECISION.' if strategy=='signal_merge' else 'A SHARED DIRECTION.',36,accent)
+    objects=states(scene,frame)
+    a,hero,b=objects
+    reveal=min(1,max(0,(frame-8)/64))
+    # Context uses the full canvas; the direction travels through the moving subjects.
+    for row in range(5):
+        y=400+row*80
+        if strategy=='signal_merge':
+            endx=hero['x']-hero['size']/2
+            endy=hero['y']+(row-2)*18
+            x=190+(endx-190)*reveal
+            yy=y+(endy-y)*reveal
+            d.line([point(190,y),point(x,yy)],fill=accent,width=max(1,round((2+row%2)*sx)))
+            d.ellipse((*point(182,y-8),*point(198,y+8)),fill=accent)
+        else:
+            for col in range(12):
+                x=180+col*132
+                length=14+20*reveal
+                color=accent if col/12<=reveal else '#CCDCD2'
+                d.line([point(x,y),point(x+length,y)],fill=color,width=max(1,round(3*sx)))
+                d.line([point(x+length-8,y-7),point(x+length,y),point(x+length-8,y+7)],fill=color,width=max(1,round(3*sx)))
+    # The outgoing line is a consequence of consolidation, rather than a footer decoration.
+    progress=min(1,max(0,(frame-35)/40))
+    start=(hero['x']+hero['size']/2,hero['y'])
+    end=(b['x'],b['y'])
+    tip=(start[0]+(end[0]-start[0])*progress,start[1]+(end[1]-start[1])*progress)
+    d.line([point(*start),point(*tip)],fill=accent,width=max(2,round(10*sx)))
+    for obj in objects:
+        x,y,size=obj['x'],obj['y'],obj['size']
+        box=[*point(x-size/2,y-size/2),*point(x+size/2,y+size/2)]
+        shapes.append(box)
+        if obj['id']==1:
+            if strategy=='signal_merge':
+                d.ellipse(box,fill=accent)
+                # Five incoming lanes collapse into a single clear output.
+                for j in range(5):
+                    yy=y+(j-2)*26*(1-obj['progress']*.65)
+                    d.line([point(x-100,yy),point(x,y),point(x+90,y)],fill=bg,width=max(2,round(5*sx)))
+                text(x,y+92,'ONE',36,bg,'mm')
+            else:
+                d.rounded_rectangle(box,radius=round(12*sx),fill=accent)
+                d.polygon([point(x-90,y-25),point(x+30,y-25),point(x+30,y-70),point(x+100,y),point(x+30,y+70),point(x+30,y+25),point(x-90,y+25)],fill=bg)
+        else:
+            d.ellipse(box,fill=bg,outline=accent,width=max(2,round(5*sx)))
+            text(x,y,'5' if obj['id']==0 and strategy=='signal_merge' else ('1' if obj['id']==2 else 'GO'),40,accent,'mm')
+    text(150,920,'Signals become a decision.' if strategy=='signal_merge' else 'Every element points to the same destination.',38)
+    return im,{'frame':frame,'states':objects,'text_bounds':boxes,'shape_bounds':shapes,
                'style':{'background':bg,'ink':ink,'accent':accent,'primary_object':1,'strategy':strategy,
                         'material':p.get('material','flat'),'transition':p.get('transition','carry')}}

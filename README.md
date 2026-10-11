@@ -1,3 +1,5 @@
+[**New composition studies: compare three distinct visual explanations**](examples/design-review/README.md)
+
 [**Open the full video gallery — all published experiment videos**](examples/gallery/README.md)
 
 # Motion Training
@@ -76,7 +78,7 @@ stopped, preserves its original archive under runtime/imports/, and creates a ne
 verified snapshot. The additive `training/AUTONOMOUS.md` explains the user's research
 authorization separately from the unchanged client-film workflow.
 
-Research now cycles through sound effects, visuals, materials, smoothness, originality,
+Composition studies now run every third round, and later passes visit previously untested alternatives instead of repeatedly selecting the first pair. Research also cycles through sound effects, visuals, materials, smoothness, originality,
 music, voice-over, timing, transitions, typography, rendering libraries, sound-picture
 sync and mixing. Bright palettes, an asymmetric hierarchy and a purposeful thread
 apply the supplied design principles. Named arrive/depart/move curves are implemented

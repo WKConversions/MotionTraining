@@ -213,6 +213,15 @@ class SourceControlTests(unittest.TestCase):
 
 
 class SeniorSkillTests(unittest.TestCase):
+    def test_research_visits_all_alternatives_and_prioritizes_composition(self):
+        from motionlab.research import select,DOMAINS
+        profile={'import_round':14}
+        selected=[select(n,profile,{},2) for n in range(15,225)]
+        self.assertTrue(all(selected[i]['domain']=='composition' for i in range(0,len(selected),3)))
+        for domain,variable,values,_,_ in DOMAINS:
+            visited={v for s in selected if s['domain']==domain for v in s['values']}
+            self.assertEqual(visited,set(values),domain)
+
     def test_invalid_candidate_does_not_abort_round_or_erase_skill(self):
         with tempfile.TemporaryDirectory() as tmp:
             cfg=load_config()
